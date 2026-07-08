@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廣東話動物奇觀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans HK"', 'sans-serif'],
+                    },
+                    colors: {
+                        'ghibli-green': '#7BA05B',
+                        'ghibli-light': '#F4F1E1',
+                        'ghibli-brown': '#5C4A3D',
+                        'ghibli-blue': '#8BBFDF',
+                        'ghibli-accent': '#E89073'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F4F1E1;
+            background-image: radial-gradient(#d4d0ba 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-ghibli {
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 4px 0 #5C4A3D;
+        }
+        .btn-ghibli:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #5C4A3D;
+        }
+    </style>
+</head>
+<body class="text-ghibli-brown antialiased min-h-screen flex items-center justify-center p-4">
+    <div id="root" class="w-full max-w-2xl"></div>
+
+    <script type="text/babel">
+        // 題目資料 (移除了不再需要的 imagePrompt)
+        const questions = [
+            {
+                word: "老虎乸",
+                jyutping: "lou5 fu2 naa2",
+                options: ["兇惡的女人", "年老的母老虎", "喜歡吃肉的人"],
+                answerIndex: 0,
+                explanation: "比喻非常兇惡、脾氣暴躁的女人（通常指妻子）。",
+                example: "佢老婆出名係老虎乸，邊個敢惹佢呀？"
+            },
+            {
+                word: "三腳貓",
+                jyutping: "saam1 gok3 maau1",
+                options: ["受傷的貓", "技藝不精的人", "罕見的動物"],
+                answerIndex: 1,
+                explanation: "形容人的技藝不精，只懂皮毛，通常配搭「功夫」使用。",
+                example: "佢啲功夫得三腳貓，點同人比賽呀？"
+            },
+            {
+                word: "失魂魚",
+                jyutping: "sat1 wan4 jyu2",
+                options: ["迷路的魚", "新鮮的魚", "丟三落四、冒失的人"],
+                answerIndex: 2,
+                explanation: "形容人經常心不在焉、丟三落四或非常冒失。",
+                example: "你真係一條失魂魚，又唔記得帶鎖匙！"
+            },
+            {
+                word: "扮死狗",
+                jyutping: "baan6 sei2 gau2",
+                options: ["裝可憐以逃避責任", "狗睡覺的樣子", "假裝生病"],
+                answerIndex: 0,
+                explanation: "指做錯事後假裝可憐，或遇到困難時故意退縮以博取同情或逃避責任。",
+                example: "佢做錯事就喺度扮死狗，博人原諒。"
+            },
+            {
+                word: "地頭蟲",
+                jyutping: "dei6 tau4 cung4",
+                options: ["在地下生活的昆蟲", "熟悉當地情況或在當地有勢力的人", "動作很慢的人"],
+                answerIndex: 1,
+                explanation: "指對某個地方非常熟悉，或者在當地很有勢力、吃得開的人。",
+                example: "佢係呢區嘅地頭蟲，想搵食問佢就實冇錯。"
+            },
+            {
+                word: "揗晒雞",
+                jyutping: "tan4 saai3 gai1",
+                options: ["煮熟的雞", "驚慌失措、手忙腳亂", "雞隻發抖"],
+                answerIndex: 1,
+                explanation: "形容人因為害怕、緊張或突發狀況而驚慌失措，手忙腳亂。",
+                example: "臨考試前佢先嚟揗晒雞，真係冇用。"
+            },
+            {
+                word: "扮鵪鶉",
+                jyutping: "baan6 am1 ceon1",
+                options: ["假裝自己很渺小", "遇到事情時退縮不敢出聲", "喜歡吃鵪鶉蛋"],
+                answerIndex: 1,
+                explanation: "形容人遇到事情時畏縮退避，像鵪鶉一樣瑟縮一角，不敢出聲或反抗。",
+                example: "開會嗰陣大家都發表意見，係得佢一個扮鵪鶉。"
+            },
+            {
+                word: "鐵公雞",
+                jyutping: "tit3 gung1 gai1",
+                options: ["鐵做的玩具", "非常吝嗇的人", "堅強的人"],
+                answerIndex: 1,
+                explanation: "比喻極度吝嗇、一毛不拔的人。",
+                example: "佢係出名嘅鐵公雞，要佢請客真係難過登天。"
+            },
+            {
+                word: "跟尾狗",
+                jyutping: "gan1 mei5 gau2",
+                options: ["盲目跟隨別人的人", "可愛的寵物狗", "走在後面的狗"],
+                answerIndex: 0,
+                explanation: "帶有貶義，指毫無主見、盲目跟隨並討好別人的人（應聲蟲）。",
+                example: "佢成日做老闆隻跟尾狗，老細話咩佢都話好。"
+            },
+            {
+                word: "大頭蝦",
+                jyutping: "daai6 tau4 haa1",
+                options: ["頭部很大的蝦", "愛吃海鮮的人", "粗心大意、經常忘東忘西的人"],
+                answerIndex: 2,
+                explanation: "形容人粗心大意、丟三落四、經常忘記事情或遺漏東西。",
+                example: "你真係大頭蝦，出門口又唔記得帶銀包啦！"
+            },
+            {
+                word: "狐狸精",
+                jyutping: "wu4 lei4 zing1",
+                options: ["破壞別人家庭的第三者", "聰明的動物", "傳說中的妖怪"],
+                answerIndex: 0,
+                explanation: "多指以美色勾引已婚男子、破壞別人家庭關係的女性第三者。",
+                example: "嗰個女人竟然做狐狸精，拆散人哋大好家庭。"
+            },
+            {
+                word: "金魚佬",
+                jyutping: "gam1 jyu2 lou2",
+                options: ["賣金魚的小販", "喜歡養魚的人", "有戀童傾向或喜歡誘拐小童的中年男子"],
+                answerIndex: 2,
+                explanation: "帶有貶義，源於都市傳說，指以金魚等小物件誘拐小女孩的中年男子，現泛指有戀童傾向的男人。",
+                example: "你睇個男人望住班細路女個樣幾猥瑣，真係成個金魚佬咁。"
+            }
+        ];
+
+        const App = () => {
+            const [gameState, setGameState] = React.useState('start'); // start, playing, feedback, end
+            const [currentQIndex, setCurrentQIndex] = React.useState(0);
+            const [score, setScore] = React.useState(0);
+            // 移除了 currentImage 和 isGeneratingImg 狀態
+            const [selectedOption, setSelectedOption] = React.useState(null);
+            const [isCorrect, setIsCorrect] = React.useState(false);
+            
+            const [leaderboard, setLeaderboard] = React.useState([]);
+            const [playerName, setPlayerName] = React.useState('');
+            const [hasSubmitted, setHasSubmitted] = React.useState(false);
+
+            React.useEffect(() => {
+                const savedLeaderboard = JSON.parse(localStorage.getItem('cantoneseAnimalGameLeaderboard')) || [];
+                setLeaderboard(savedLeaderboard);
+            }, []);
+
+            const submitScore = () => {
+                if (!playerName.trim()) return;
+                const newEntry = { name: playerName.trim(), score: score, date: new Date().toLocaleDateString() };
+                const newLeaderboard = [...leaderboard, newEntry].sort((a, b) => b.score - a.score).slice(0, 5); // Keep top 5
+                setLeaderboard(newLeaderboard);
+                localStorage.setItem('cantoneseAnimalGameLeaderboard', JSON.stringify(newLeaderboard));
+                setHasSubmitted(true);
+            };
+
+            // 移除了 generateImage 函數
+
+            const startGame = () => {
+                setScore(0);
+                setCurrentQIndex(0);
+                setHasSubmitted(false);
+                setPlayerName('');
+                setGameState('playing');
+                // 移除了 generateImage 調用
+            };
+
+            const handleOptionClick = (index) => {
+                const correct = index === questions[currentQIndex].answerIndex;
+                setIsCorrect(correct);
+                setSelectedOption(index);
+                if (correct) setScore(score + 100);
+                setGameState('feedback');
+            };
+
+            const nextQuestion = () => {
+                if (currentQIndex < questions.length - 1) {
+                    const nextIndex = currentQIndex + 1;
+                    setCurrentQIndex(nextIndex);
+                    setGameState('playing');
+                    setSelectedOption(null);
+                    // 移除了 generateImage 調用
+                } else {
+                    setGameState('end');
+                }
+            };
+
+            const getRank = () => {
+                const totalScore = score;
+                if (totalScore === 1200) return { title: "廣東話宗師", color: "text-yellow-600", desc: "太犀利啦！你絕對係地道香港人！" };
+                if (totalScore >= 900) return { title: "俗語達人", color: "text-ghibli-green", desc: "好叻仔/叻女！廣東話難你唔到！" };
+                if (totalScore >= 500) return { title: "初級學者", color: "text-ghibli-blue", desc: "唔錯唔錯，仲有進步空間，繼續努力！" };
+                return { title: "遊客水平", color: "text-gray-500", desc: "當學多啲嘢啦，多啲練習一定得！" };
+            };
+
+            // 輔助函數：根據題目索引獲取圖片文件名 (01.png, 02.png...)
+            const getImageFilename = (index) => {
+                // 現在已經有完整的 12 張圖
+                if (index < 12) {
+                    return `${String(index + 1).padStart(2, '0')}.png`;
+                }
+                return null; 
+            };
+
+            return (
+                <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-ghibli-green/30 relative">
+                    
+                    {/* START SCREEN */}
+                    {gameState === 'start' && (
+                        <div className="p-10 text-center animate-fade-in flex flex-col items-center justify-center min-h-[500px]">
+                            <div className="w-32 h-32 bg-ghibli-green rounded-full flex items-center justify-center mb-6 shadow-inner animate-float">
+                                <i className="fa-solid fa-cat text-6xl text-white"></i>
+                            </div>
+                            <h1 className="text-4xl font-black text-ghibli-green mb-2 text-shadow">廣東話動物奇觀</h1>
+                            <p className="text-xl text-ghibli-brown/80 mb-8 font-bold">12題俗語大挑戰</p>
+                            
+                            <div className="bg-ghibli-light p-6 rounded-xl mb-8 text-left inline-block border-2 border-ghibli-green/20">
+                                <h3 className="font-bold text-lg mb-2"><i className="fa-solid fa-scroll mr-2"></i>遊戲玩法：</h3>
+                                {/* 移除了關於 AI 的描述 */}
+                                <ul className="list-disc list-inside space-y-2 text-ghibli-brown/80 font-medium">
+                                    <li>測試你對包含「動物」的廣東話俗語認識</li>
+                                    <li>學習正確粵拼及地道例句</li>
+                                    <li>爭取最高分數，挑戰成為「廣東話宗師」！</li>
+                                </ul>
+                            </div>
+
+                            <button onClick={startGame} className="btn-ghibli bg-ghibli-accent hover:bg-orange-400 text-white text-2xl font-black py-4 px-12 rounded-full flex items-center gap-3">
+                                立即挑戰 <i className="fa-solid fa-play"></i>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* PLAYING SCREEN */}
+                    {gameState === 'playing' && (
+                        <div className="animate-fade-in flex flex-col h-full">
+                            {/* Header */}
+                            <div className="bg-ghibli-green text-white p-4 flex justify-between items-center font-bold text-lg rounded-t-2xl shadow-md z-10">
+                                <div><i className="fa-solid fa-paw mr-2"></i> 題目 {currentQIndex + 1} / 12</div>
+                                <div><i className="fa-solid fa-star text-yellow-300 mr-2"></i> 分數: {score}</div>
+                            </div>
+
+                            <div className="p-6 md:p-8 flex-1 flex flex-col items-center">
+                                {/* Image Box - Modified to use local images */}
+                                <div className="w-full max-w-sm aspect-square bg-ghibli-light rounded-2xl mb-6 shadow-inner border-4 border-white flex items-center justify-center overflow-hidden relative">
+                                    {getImageFilename(currentQIndex) ? (
+                                        <img 
+                                            src={getImageFilename(currentQIndex)} 
+                                            alt={questions[currentQIndex].word} 
+                                            className="w-full h-full object-cover animate-fade-in" 
+                                            onError={(e) => {e.target.onerror = null; e.target.parentNode.innerHTML = '<div class="text-ghibli-brown font-bold p-4 text-center">(圖片載入失敗)<br/>' + questions[currentQIndex].word + '</div>'}}
+                                        />
+                                    ) : (
+                                        // Fallback for questions 11 and 12 if no images provided
+                                        <div className="text-ghibli-brown font-bold p-4 text-center">
+                                            (暫無圖片)<br/>{questions[currentQIndex].word}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Question Text */}
+                                <div className="text-center mb-8">
+                                    <h2 className="text-5xl font-black tracking-widest text-ghibli-brown mb-2">{questions[currentQIndex].word}</h2>
+                                    <p className="text-xl text-ghibli-green font-bold bg-green-50 inline-block px-4 py-1 rounded-full border border-green-200">
+                                        {questions[currentQIndex].jyutping}
+                                    </p>
+                                </div>
+
+                                {/* Options */}
+                                <div className="w-full space-y-3">
+                                    {questions[currentQIndex].options.map((opt, idx) => (
+                                        <button 
+                                            key={idx} 
+                                            onClick={() => handleOptionClick(idx)}
+                                            // 移除了 disabled={isGeneratingImg}
+                                            className={`w-full text-left p-4 rounded-xl font-bold text-lg transition-all border-2 bg-white border-ghibli-green hover:bg-ghibli-green hover:text-white hover:-translate-y-1 shadow-sm`}
+                                        >
+                                            <span className="inline-block w-8 text-center mr-2 bg-ghibli-light text-ghibli-brown rounded-md px-2 py-1 border border-ghibli-brown/20 group-hover:bg-white">{['A', 'B', 'C'][idx]}</span> 
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* FEEDBACK SCREEN - No changes needed here */}
+                    {gameState === 'feedback' && (
+                        <div className="animate-fade-in flex flex-col h-full bg-[#f9f8f3]">
+                            {/* Header Result */}
+                            <div className={`p-6 text-center font-black text-3xl text-white shadow-md z-10 ${isCorrect ? 'bg-ghibli-green' : 'bg-red-400'}`}>
+                                {isCorrect ? <><i className="fa-solid fa-circle-check mr-2"></i> 答對了！ (+100分)</> : <><i className="fa-solid fa-circle-xmark mr-2"></i> 哎呀，答錯了！</>}
+                            </div>
+
+                            <div className="p-6 md:p-8 flex-1 flex flex-col">
+                                
+                                <div className="text-center mb-6">
+                                    <h2 className="text-6xl font-black text-ghibli-brown mb-2">{questions[currentQIndex].word}</h2>
+                                    <p className="text-2xl text-ghibli-green font-bold mb-4">{questions[currentQIndex].jyutping}</p>
+                                </div>
+
+                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-ghibli-light mb-8 space-y-4">
+                                    <div>
+                                        <h4 className="text-sm text-gray-500 font-bold mb-1"><i className="fa-solid fa-book-open mr-1"></i> 解釋：</h4>
+                                        <p className="text-lg font-bold text-ghibli-brown">{questions[currentQIndex].explanation}</p>
+                                    </div>
+                                    <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-ghibli-blue">
+                                        <h4 className="text-sm text-ghibli-blue font-bold mb-1"><i className="fa-solid fa-comment-dots mr-1"></i> 例句：</h4>
+                                        <p className="text-xl font-bold text-gray-800 leading-relaxed">{questions[currentQIndex].example}</p>
+                                    </div>
+                                </div>
+
+                                <button onClick={nextQuestion} className="mt-auto btn-ghibli bg-ghibli-accent hover:bg-orange-400 text-white text-xl font-black py-4 w-full rounded-xl flex items-center justify-center gap-2">
+                                    {currentQIndex < questions.length - 1 ? '下一題' : '查看成績'} <i className="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* END SCREEN - No changes needed here */}
+                    {gameState === 'end' && (
+                        <div className="p-10 text-center animate-fade-in flex flex-col items-center justify-center min-h-[500px]">
+                            <h2 className="text-4xl font-black text-ghibli-brown mb-8">挑戰完成！</h2>
+                            
+                            <div className="bg-white border-4 border-ghibli-green p-8 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-lg mb-8 relative">
+                                <div className="absolute -top-4 -right-4 text-5xl animate-bounce">
+                                    {score >= 900 ? '👑' : (score >= 500 ? '⭐' : '🌱')}
+                                </div>
+                                <span className="text-sm font-bold text-gray-500 mb-1">最終分數</span>
+                                <span className="text-5xl font-black text-ghibli-green">{score}</span>
+                            </div>
+
+                            <div className="bg-ghibli-light p-6 rounded-2xl w-full border border-ghibli-green/20 mb-8">
+                                <h3 className="text-gray-500 font-bold mb-1">你的等級</h3>
+                                <p className={`text-4xl font-black mb-2 ${getRank().color}`}>{getRank().title}</p>
+                                <p className="text-lg font-bold text-ghibli-brown/80">{getRank().desc}</p>
+                            </div>
+
+                            {/* Leaderboard Section */}
+                            <div className="w-full bg-white rounded-2xl p-6 shadow-sm border-2 border-ghibli-brown/10 mb-8 text-left">
+                                <h3 className="text-2xl font-black text-ghibli-brown mb-4 text-center"><i className="fa-solid fa-trophy text-yellow-500 mr-2"></i>英雄排名榜</h3>
+                                
+                                {!hasSubmitted && score > 0 ? (
+                                    <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                                        <input 
+                                            type="text" 
+                                            value={playerName}
+                                            onChange={(e) => setPlayerName(e.target.value)}
+                                            placeholder="輸入你的大名..." 
+                                            maxLength="10"
+                                            className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-ghibli-green focus:outline-none font-bold text-gray-700"
+                                        />
+                                        <button onClick={submitScore} className="btn-ghibli bg-ghibli-blue hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl whitespace-nowrap">
+                                            提交分數
+                                        </button>
+                                    </div>
+                                ) : (
+                                    hasSubmitted && <div className="text-ghibli-green font-bold mb-6 bg-green-50 p-3 rounded-xl text-center border border-green-200">✅ 已成功紀錄你的分數！</div>
+                                )}
+
+                                <div className="space-y-2">
+                                    {leaderboard.length > 0 ? leaderboard.map((entry, idx) => (
+                                        <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-8 h-8 flex items-center justify-center rounded-full font-black ${idx === 0 ? 'bg-yellow-100 text-yellow-600 text-lg' : (idx === 1 ? 'bg-gray-200 text-gray-500' : (idx === 2 ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-400'))}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <span className="font-bold text-gray-700 text-lg">{entry.name}</span>
+                                            </div>
+                                            <span className="font-black text-ghibli-green text-xl">{entry.score} 分</span>
+                                        </div>
+                                    )) : (
+                                        <p className="text-gray-400 font-bold py-4 text-center">暫時未有紀錄，成為第一個上榜嘅人啦！</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button onClick={startGame} className="btn-ghibli bg-ghibli-green hover:bg-green-600 text-white text-xl font-black py-4 px-10 rounded-full flex items-center gap-2">
+                                <i className="fa-solid fa-rotate-right"></i> 再玩一次
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
